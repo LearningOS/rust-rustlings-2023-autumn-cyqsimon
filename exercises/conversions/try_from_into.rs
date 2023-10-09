@@ -27,7 +27,9 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
+fn to_u8(n: i16) -> Result<u8, IntoColorError> {
+    n.try_into().map_err(|_| IntoColorError::IntConversion)
+}
 
 // Your task is to complete this implementation and return an Ok result of inner
 // type Color. You need to create an implementation for a tuple of three
@@ -40,7 +42,12 @@ enum IntoColorError {
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+    fn try_from(t: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        let red = to_u8(t.0)?;
+        let green = to_u8(t.1)?;
+        let blue = to_u8(t.2)?;
+
+        Ok(Color { red, green, blue })
     }
 }
 
@@ -48,6 +55,11 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        let red = to_u8(arr[0])?;
+        let green = to_u8(arr[1])?;
+        let blue = to_u8(arr[2])?;
+
+        Ok(Color { red, green, blue })
     }
 }
 
@@ -55,6 +67,15 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        }
+
+        let red = to_u8(slice[0])?;
+        let green = to_u8(slice[1])?;
+        let blue = to_u8(slice[2])?;
+
+        Ok(Color { red, green, blue })
     }
 }
 
@@ -105,14 +126,7 @@ mod tests {
     fn test_tuple_correct() {
         let c: Result<Color, _> = (183, 65, 14).try_into();
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14
-            }
-        );
+        assert_eq!(c.unwrap(), Color { red: 183, green: 65, blue: 14 });
     }
     #[test]
     fn test_array_out_of_range_positive() {
@@ -133,14 +147,7 @@ mod tests {
     fn test_array_correct() {
         let c: Result<Color, _> = [183, 65, 14].try_into();
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14
-            }
-        );
+        assert_eq!(c.unwrap(), Color { red: 183, green: 65, blue: 14 });
     }
     #[test]
     fn test_slice_out_of_range_positive() {
@@ -171,14 +178,7 @@ mod tests {
         let v = vec![183, 65, 14];
         let c: Result<Color, _> = Color::try_from(&v[..]);
         assert!(c.is_ok());
-        assert_eq!(
-            c.unwrap(),
-            Color {
-                red: 183,
-                green: 65,
-                blue: 14
-            }
-        );
+        assert_eq!(c.unwrap(), Color { red: 183, green: 65, blue: 14 });
     }
     #[test]
     fn test_slice_excess_length() {
