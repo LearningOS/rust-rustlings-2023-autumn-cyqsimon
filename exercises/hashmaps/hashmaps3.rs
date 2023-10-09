@@ -14,14 +14,20 @@
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
-
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::AddAssign};
 
 // A structure to store the goal details of a team.
+#[derive(Default)]
 struct Team {
     goals_scored: u8,
     goals_conceded: u8,
+}
+// this is not the best practice but I'm lazy
+impl AddAssign<(u8, u8)> for Team {
+    fn add_assign(&mut self, rhs: (u8, u8)) {
+        self.goals_scored += rhs.0;
+        self.goals_conceded += rhs.1;
+    }
 }
 
 fn build_scores_table(results: String) -> HashMap<String, Team> {
@@ -30,15 +36,13 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
 
     for r in results.lines() {
         let v: Vec<&str> = r.split(',').collect();
-        let team_1_name = v[0].to_string();
-        let team_1_score: u8 = v[2].parse().unwrap();
-        let team_2_name = v[1].to_string();
-        let team_2_score: u8 = v[3].parse().unwrap();
-        // TODO: Populate the scores table with details extracted from the
-        // current line. Keep in mind that goals scored by team_1
-        // will be the number of goals conceded from team_2, and similarly
-        // goals scored by team_2 will be the number of goals conceded by
-        // team_1.
+        let n1 = v[0].to_string();
+        let n2 = v[1].to_string();
+        let s1: u8 = v[2].parse().unwrap();
+        let s2: u8 = v[3].parse().unwrap();
+
+        *scores.entry(n1).or_default() += (s1, s2);
+        *scores.entry(n2).or_default() += (s2, s1);
     }
     scores
 }
